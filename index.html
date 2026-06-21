@@ -1,1081 +1,673 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FormFlow Studio Pro - Premium Edition</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormFlow Studio Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{--canvas-bg:#141517;--workspace-bg:#0f1011;--canva-purple:#8b3dff;--canva-blue:#00c4cc;--sidebar-bg:#1a1b1e;--border-color:#2d2e33}
+*{box-sizing:border-box;font-family:'Inter',sans-serif;margin:0;padding:0}
+body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
+.top-nav{height:60px;background:var(--sidebar-bg);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:10000;position:relative}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{background:linear-gradient(135deg,var(--canva-purple),var(--canva-blue));width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold}
+.nav-actions-group{display:flex;align-items:center;gap:12px}
+.zoom-indicator{display:flex;background:#25262b;padding:4px;border-radius:8px;border:1px solid var(--border-color);align-items:center;gap:4px}
+.nav-icon-btn{background:transparent;border:none;color:#a6a6a6;width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.nav-icon-btn:hover{background:rgba(255,255,255,.05);color:#fff}
+.action-accent-btn{background:#22c55e;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:filter .2s}
+.action-accent-btn.upload-btn{background:var(--canva-purple)}
+.action-accent-btn:hover{filter:brightness(1.1)}
+.studio-layout{display:flex;height:calc(100vh - 60px);width:100vw}
+.left-sidebar-panel{width:260px;background:var(--sidebar-bg);border-right:1px solid var(--border-color);display:flex;flex-direction:column;padding:20px;gap:24px;z-index:50;overflow-y:auto}
+.sidebar-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#787f8c;margin-bottom:10px}
+.tool-select-card{background:#25262b;border:1px solid var(--border-color);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.tool-select-card:hover,.tool-select-card.active{border-color:var(--canva-purple);background:rgba(139,61,255,.05)}
+.tool-select-card i{font-size:20px;color:#a6a6a6}
+.tool-select-card.active i{color:var(--canva-purple)}
+.tool-select-card h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.tool-select-card p{font-size:11px;color:#787f8c}
+.workspace-viewport{flex:1;overflow:auto;background:var(--canvas-bg);display:flex;align-items:flex-start;justify-content:center;padding:40px}
+.pages-wrapper{display:flex;flex-direction:column;gap:40px;align-items:center;margin-bottom:100px}
+.canvas-container{position:relative;background:#fff;box-shadow:0 20px 50px rgba(0,0,0,.6);transform-origin:top center}
 
-    <style>
-        :root {
-            --canvas-bg: #141517;
-            --workspace-bg: #0f1011;
-            --canva-purple: #8b3dff;
-            --canva-blue: #00c4cc;
-            --border-selected: #8b3dff;
-            --toolbar-bg: #ffffff;
-            --text-dark: #0f172a;
-            --sidebar-bg: #1a1b1e;
-            --border-color: #2d2e33;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--workspace-bg);
-            color: #ffffff;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        .top-nav {
-            height: 60px;
-            background-color: var(--sidebar-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 10000;
-            position: relative;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-logo {
-            background: linear-gradient(135deg, var(--canva-purple), var(--canva-blue));
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .nav-actions-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .history-controls, .zoom-indicator {
-            display: flex;
-            background: #25262b;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-icon-btn {
-            background: transparent;
-            border: none;
-            color: #a6a6a6;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .nav-icon-btn:hover {
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-
-        .action-accent-btn {
-            background: #22c55e;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: filter 0.2s;
-        }
-
-        .action-accent-btn.preview-mode-btn { background: #2563eb; }
-        .action-accent-btn.upload-btn { background: var(--canva-purple); }
-        .action-accent-btn:hover { filter: brightness(1.1); }
-
-        .studio-layout {
-            display: flex;
-            height: calc(100vh - 60px);
-            width: 100vw;
-            position: relative;
-        }
-
-        .left-sidebar-panel {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 24px;
-            z-index: 50;
-        }
-
-        .sidebar-section-title {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #787f8c;
-            margin-bottom: 10px;
-        }
-
-        .tool-select-card {
-            background: #25262b;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 10px;
-        }
-
-        .tool-select-card:hover, .tool-select-card.active {
-            border-color: var(--canva-purple);
-            background: rgba(139, 61, 255, 0.05);
-        }
-
-        .tool-select-card i { font-size: 20px; color: #a6a6a6; }
-        .tool-select-card.active i { color: var(--canva-purple); }
-        .tool-select-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-        .tool-select-card p { font-size: 11px; color: #787f8c; }
-
-        .workspace-viewport {
-            flex: 1;
-            overflow: auto;
-            background-color: var(--canvas-bg);
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            position: relative;
-            padding: 40px;
-        }
-
-        .canvas-container {
-            position: relative;
-            background: white;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            transform-origin: top left;
-            transition: transform 0.1s ease-out;
-            margin-bottom: 100px;
-        }
-
-        #pdf-render-canvas {
-            display: block;
-            max-width: 100%;
-            z-index: 1;
-        }
-
-        .interaction-matrix {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2;
-            cursor: crosshair;
-        }
-
-        .smart-detect-marquee {
-            position: absolute;
-            border: 2px dashed var(--canva-blue);
-            background: rgba(0, 196, 204, 0.15);
-            pointer-events: none;
-            display: none;
-            z-index: 1000;
-        }
-
-        .canvas-element {
-            position: absolute;
-            border: 1px dashed transparent;
-            cursor: move;
-            z-index: 10;
-            padding: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-        }
-
-        .canvas-element.is-selected {
-            border: 2px solid var(--border-selected);
-            background: rgba(139, 61, 255, 0.02);
-            z-index: 20;
-        }
-
-        body.preview-active .canvas-element {
-            border: none !important;
-            background: transparent !important;
-            cursor: default;
-        }
-
-        .text-vector-input {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: transparent;
-            outline: none;
-            color: #000000;
-            font-size: inherit;
-            font-weight: bold;
-            resize: none;
-            overflow: hidden;
-            pointer-events: auto;
-        }
-
-        body.preview-active .text-vector-input {
-            pointer-events: none;
-        }
-        
-        .canvas-element.locked { cursor: not-allowed; }
-
-        /* 1. اجعل المربعات الصغيرة تختفي أو تدمج */
-.grid-cells-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    /* بدلاً من space-between، اجعلها كتلة واحدة */
-    justify-content: flex-start; 
-    pointer-events: none;
+/* ── ELEMENT WRAPPER ── */
+.canvas-element{
+  position:absolute;
+  z-index:10;
+  display:grid;          /* grid بدل flex عشان نتحكم في طبقات */
+  grid-template-rows:1fr;
+  grid-template-columns:1fr;
+  box-sizing:border-box;
+}
+/* drag-handle: شريط شفاف فوق الـ textarea بيمسكه للـ drag */
+.drag-handle{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:10px;           /* شريط صغير فوق */
+  cursor:move;
+  z-index:15;
+  background:transparent;
+}
+/* لما العنصر selected، شريط على الشمال كمان */
+.canvas-element.is-selected .drag-handle{
+  height:100%;           /* لما محدد، كل الجانب الأيمن والشمال قابل للـ drag */
+  width:8px;
+  top:0;left:0;bottom:0;right:auto;
+}
+.canvas-element.is-selected{
+  outline:2px solid var(--canva-purple);
+  outline-offset:1px;
+  z-index:20;
 }
 
-.smart-character-box {
-    border: none !important; /* إلغاء الحدود بين الحروف */
-    background: transparent !important; /* إلغاء الخلفية البيضاء للمربعات */
-    color: #000000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: monospace;
-    font-weight: bold;
-    height: 100%;
-    flex: 1; /* جعل كل مربع يأخذ مساحة متساوية لملء الخانة */
+/* textarea */
+.text-vector-input{
+  width:100%;height:100%;
+  border:none!important;background:transparent!important;outline:none!important;
+  color:#000;font-size:inherit;font-weight:bold;
+  resize:none;overflow:hidden;
+  padding:2px 4px;
+  line-height:1.2;
+  cursor:text;
+  z-index:12;
+  position:relative;
 }
 
-/* 2. تأكد أن حقل النص يظهر بشكل سليم */
-.text-vector-input {
-    width: 100%;
-    height: 100%;
-    border: 1px solid #0f172a; /* يمكنك إضافة حدود خارجية للخانة الكبيرة فقط هنا */
-    background: transparent;
-    outline: none;
-    color: #000000;
-    font-size: 16px; /* اضبط الحجم كما تحب */
-    font-weight: bold;
-    padding: 0 5px; /* مسافة داخلية بسيطة */
-    resize: none;
-    overflow: hidden;
-    pointer-events: auto;
-}
-        body.preview-active .smart-character-box {
-            background: transparent;
-            border-color: rgba(0,0,0,0.15);
-        }
-
-        .resize-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border: 2px solid var(--border-selected);
-            border-radius: 50%;
-            display: none;
-            z-index: 30;
-        }
-        .canvas-element.is-selected .resize-handle { display: block; }
-        .rh-se { bottom: -5px; right: -5px; cursor: se-resize; }
-
-        .canva-floating-toolbar {
-            position: absolute;
-            background: var(--toolbar-bg);
-            border-radius: 8px;
-            padding: 6px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 99999;
-            border: 1px solid #e2e8f0;
-            color: var(--text-dark);
-            transform: translate(-50%, -120%);
-            white-space: nowrap;
-        }
-
-        .toolbar-segment { display: flex; align-items: center; gap: 8px; }
-        .toolbar-divider { width: 1px; height: 16px; background-color: #cbd5e1; }
-
-        .tool-action-icon {
-            width: 28px; height: 28px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 6px; cursor: pointer; transition: background 0.2s;
-            font-size: 13px;
-        }
-        .tool-action-icon:hover { background-color: #f1f5f9; }
-
-        .font-slider-container { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; }
-        .font-slider-container input { width: 80px; accent-color: var(--canva-purple); cursor: pointer; }
-
-        #hidden-pdf-uploader { display: none; }
-
-        .status-sync-hub {
-            position: fixed; bottom: 24px; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #0f172a; color: white; padding: 10px 24px;
-            border-radius: 30px; font-size: 13px; font-weight: 500;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: transform 0.3s ease;
-            z-index: 1000000; display: flex; align-items: center; gap: 8px;
-        }
-        .status-sync-hub.active { transform: translateX(-50%) translateY(0); }
-
-        body.preview-active .left-sidebar-panel,
-        body.preview-active .top-nav .history-controls,
-        body.preview-active .canva-floating-toolbar,
-        body.preview-active .resize-handle {
-            display: none !important;
-        }
-        body.preview-active .interaction-matrix { cursor: default; }
-
-        /* الكانفاس الجديد بتاع الطباعة - مخفي طول الوقت في وضع التحرير */
-        #print-flatten-canvas {
-            display: none;
-        }
-
-        /* منع المتصفح من إضافة مارجن افتراضي بيقطع الصفحة لصفحتين */
-        @page {
-            size: auto;
-            margin: 0;
-        }
-
-        @media print {
-            html, body {
-                background: #ffffff !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                height: auto !important;
-            }
-            .top-nav, .left-sidebar-panel, .canva-floating-toolbar,
-            .resize-handle, .status-sync-hub,
-            #live-interaction-matrix, .smart-detect-marquee, .canvas-element {
-                display: none !important;
-            }
-            .studio-layout, .workspace-viewport {
-                display: block !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                overflow: visible !important;
-                height: auto !important;
-                background: white !important;
-            }
-            .canvas-container {
-                box-shadow: none !important;
-                transform: none !important;
-                margin: 0 !important;
-                position: static !important;
-            }
-            #pdf-render-canvas { display: none !important; }
-            #print-flatten-canvas {
-                display: block !important;
-                position: static !important;
-                width: 100% !important;
-                height: auto !important;
-            }
-        }
-        .canvas-element {
-    border: none !important; /* هذا سيجعل كل الصناديق بدون حدود */
-}
-/* هذا الكود سيخفي الحدود لأي عنصر نصي تختاره */
-.no-border {
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-}
-/* 1. التأكد من إزالة أي حدود عن العناصر الموجودة في الـ Workspace */
-.canvas-element {
-    position: absolute;
-    border: none !important; /* إلغاء الحدود نهائياً */
-    background: transparent !important; /* إلغاء الخلفية */
-    cursor: move;
-    z-index: 10;
-    padding: 0 !important; /* إزالة الـ Padding */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
+/* GRID */
+.grid-cells-wrapper{display:flex;width:100%;height:100%;pointer-events:none}
+.smart-character-box{
+  background:transparent;color:#000;
+  display:flex;align-items:center;justify-content:center;
+  font-family:monospace;font-weight:bold;height:100%;flex:1;
+  border:none!important;
 }
 
-/* 2. إلغاء التأثير البصري عند التحديد (إزالة الإطار البنفسجي) */
-.canvas-element.is-selected {
-    border: none !important;
-    background: transparent !important;
-    outline: none !important;
-    box-shadow: none !important;
+/* font quick buttons — ظاهرين فوق */
+.font-quick-btns{
+  position:absolute;
+  bottom:calc(100% + 6px);
+  left:50%;transform:translateX(-50%);
+  display:none;
+  align-items:center;gap:6px;
+  background:rgba(15,16,17,.95);
+  border:1px solid var(--canva-purple);
+  border-radius:8px;padding:4px 10px;
+  white-space:nowrap;z-index:99999;
+  pointer-events:all;
 }
+.canvas-element.is-selected .font-quick-btns{display:flex}
+.fqb{
+  width:28px;height:28px;border-radius:6px;border:none;
+  background:var(--canva-purple);color:#fff;font-size:18px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  user-select:none;flex-shrink:0;line-height:1;
+}
+.fqb:hover{filter:brightness(1.3)}
+.fqb-label{font-size:12px;color:#ddd;min-width:38px;text-align:center}
 
-/* 3. تنظيف مظهر حقل النص نفسه */
-.text-vector-input {
-    width: 100%;
-    height: 100%;
-    border: none !important; /* تأكد من عدم وجود border هنا أيضاً */
-    background: transparent !important;
-    outline: none !important;
-    color: #000000;
-    font-size: inherit;
-    font-weight: bold;
-    resize: none;
-    overflow: hidden;
-    pointer-events: auto;
-    padding: 0;
+/* resize handle */
+.resize-handle{
+  position:absolute;width:12px;height:12px;
+  background:#fff;border:2px solid var(--canva-purple);
+  border-radius:50%;display:none;z-index:30;
+  bottom:-6px;right:-6px;cursor:se-resize;
 }
-    </style>
+.canvas-element.is-selected .resize-handle{display:block}
+
+/* floating toolbar — تحت العنصر */
+.canva-floating-toolbar{
+  position:absolute;
+  background:#fff;border-radius:8px;padding:6px 12px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  z-index:99998;border:1px solid #e2e8f0;color:#0f172a;
+  white-space:nowrap;pointer-events:all;
+  transform:translateX(-50%);
+}
+.toolbar-segment{display:flex;align-items:center;gap:8px}
+.toolbar-divider{width:1px;height:16px;background:#cbd5e1}
+.tool-action-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;transition:background .2s;font-size:13px}
+.tool-action-icon:hover{background:#f1f5f9}
+.font-slider-container{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600}
+.font-slider-container input{width:80px;accent-color:var(--canva-purple);cursor:pointer}
+
+#hidden-pdf-uploader{display:none}
+.smart-detect-marquee{position:absolute;border:2px dashed var(--canva-blue);background:rgba(0,196,204,.12);pointer-events:none;display:none;z-index:1000}
+.status-sync-hub{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#0f172a;color:#fff;padding:10px 24px;border-radius:30px;font-size:13px;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,.3);transition:transform .3s;z-index:1000000;display:flex;align-items:center;gap:8px}
+.status-sync-hub.active{transform:translateX(-50%) translateY(0)}
+
+@page{size:auto;margin:0}
+@media print{
+  html,body{background:#fff!important;margin:0!important;padding:0!important;overflow:visible!important;height:auto!important}
+  .top-nav,.left-sidebar-panel,.canva-floating-toolbar,.resize-handle,.status-sync-hub,.interaction-matrix,.smart-detect-marquee,.canvas-element,.font-quick-btns,.drag-handle{display:none!important}
+  .studio-layout,.workspace-viewport,.pages-wrapper{display:block!important;padding:0!important;margin:0!important;overflow:visible!important;height:auto!important;background:#fff!important}
+  .canvas-container{box-shadow:none!important;transform:none!important;margin:0!important;position:static!important;page-break-after:always}
+  .pdf-render-canvas{display:none!important}
+  .print-flatten-canvas{display:block!important;position:static!important;width:100%!important;height:auto!important}
+}
+</style>
 </head>
 <body>
-
-    <nav class="top-nav">
-        <div class="brand">
-            <div class="brand-logo"><i class="fa-solid fa-cube"></i></div>
-            <div>
-                <strong style="font-size: 15px; color: white; letter-spacing: 0.5px;">FormFlow Studio</strong>
-                <span style="font-size: 11px; color: #787f8c; display: block;">Production Pipeline v4.0</span>
-            </div>
-        </div>
-
-        <div class="nav-actions-group">
-            <div class="history-controls">
-                <button class="nav-icon-btn" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-                <button class="nav-icon-btn" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
-            </div>
-
-            <div class="zoom-indicator">
-                <button class="nav-icon-btn" onclick="adjustZoom(-0.1)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-                <span style="font-size: 12px; font-weight: 600; padding: 0 8px; color: #a6a6a6;" id="zoom-value-label">100%</span>
-                <button class="nav-icon-btn" onclick="adjustZoom(0.1)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            </div>
-        </div>
-
-        <div class="nav-actions-group">
-          
-            <button class="action-accent-btn" onclick="triggerPrint()">
-                <i class="fa-solid fa-print"></i> Print System
-            </button>
-        </div>
-    </nav>
-
-    <div class="studio-layout">
-        <div class="left-sidebar-panel">
-            <div>
-                <div class="sidebar-section-title">Ingest Base Asset</div>
-                <button class="action-accent-btn upload-btn" style="width:100%; justify-content:center;" onclick="document.getElementById('hidden-pdf-uploader').click()">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Choose File / Document
-                </button>
-                <input type="file" id="hidden-pdf-uploader" accept="application/pdf,image/*" onchange="loadFormAsset(event)">
-            </div>
-
-            <div>
-                <div class="sidebar-section-title">Structural Architecture Tool</div>
-                <div class="tool-select-card active" id="card-tool-text" onclick="setAppMode('text')">
-                    <i class="fa-solid fa-font"></i>
-                    <div>
-                        <h4>Standard Field Vector</h4>
-                        <p>Alphanumeric core field arrays</p>
-                    </div>
-                </div>
-
-                <div class="tool-select-card" id="card-tool-grid" onclick="setAppMode('grid')">
-                    <i class="fa-solid fa-table-cells"></i>
-                    <div>
-                        <h4>Smart Digits Grid</h4>
-                        <p>Discrete matrix auto-detection</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top: auto;">
-                <button class="tool-select-card" style="width: 100%; background: transparent; border-style: dashed;" onclick="clearWorkspaceElements()">
-                    <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
-                    <div style="text-align: left;">
-                        <h4 style="color: #ef4444;">Clear Workspace</h4>
-                    </div>
-                </button>
-            </div>
-        </div>
-
-        <div class="workspace-viewport" id="viewport-container">
-            <div class="canvas-container" id="canvas-surface">
-                <canvas id="pdf-render-canvas"></canvas>
-                <canvas id="print-flatten-canvas" style="display:none; position:absolute; top:0; left:0; z-index:5;"></canvas>
-                <div class="interaction-matrix" id="live-interaction-matrix"></div>
-                <div class="smart-detect-marquee" id="marquee-detector"></div>
-            </div>
-        </div>
+<nav class="top-nav">
+  <div class="brand">
+    <div class="brand-logo"><i class="fa-solid fa-cube"></i></div>
+    <div>
+      <strong style="font-size:15px;color:#fff">FormFlow Studio</strong>
+      <span style="font-size:11px;color:#787f8c;display:block">v7.0</span>
     </div>
-
-    <div id="global-floating-toolbar" class="canva-floating-toolbar" style="display: none;" onmousedown="event.stopPropagation()">
-        <div class="toolbar-segment font-slider-container">
-            <i class="fa-solid fa-text-height" style="color: #64748b; font-size: 12px;"></i>
-            <input type="range" min="10" max="60" value="16" id="global-font-slider">
-            <span id="global-font-counter">16px</span>
-        </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-segment">
-            <div class="tool-action-icon" id="toolbar-duplicate" title="Duplicate"><i class="fa-regular fa-copy"></i></div>
-            <div class="tool-action-icon" id="toolbar-lock" title="Lock"><i class="fa-solid fa-lock-open"></i></div>
-            <div class="tool-action-icon" id="toolbar-delete" title="Delete" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i></div>
-        </div>
+  </div>
+  <div class="nav-actions-group">
+    <div class="zoom-indicator">
+      <button class="nav-icon-btn" onclick="adjustZoom(-0.1)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      <span style="font-size:12px;font-weight:600;padding:0 8px;color:#a6a6a6" id="zoom-value-label">100%</span>
+      <button class="nav-icon-btn" onclick="adjustZoom(0.1)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
     </div>
+  </div>
+  <div class="nav-actions-group">
+    <button class="action-accent-btn" onclick="triggerPrint()"><i class="fa-solid fa-print"></i> Print</button>
+  </div>
+</nav>
 
-    <div class="status-sync-hub" id="app-toast">
-        <i class="fa-solid fa-circle-check" style="color: var(--canva-blue)"></i>
-        <span id="toast-txt">Ready</span>
+<div class="studio-layout">
+  <div class="left-sidebar-panel">
+    <div>
+      <div class="sidebar-section-title">Upload Document</div>
+      <button class="action-accent-btn upload-btn" style="width:100%;justify-content:center" onclick="document.getElementById('hidden-pdf-uploader').click()">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Choose File / PDF
+      </button>
+      <input type="file" id="hidden-pdf-uploader" accept="application/pdf,image/*" onchange="loadFormAsset(event)">
     </div>
+    <div>
+      <div class="sidebar-section-title">Tool</div>
+      <div class="tool-select-card active" id="card-tool-text" onclick="setAppMode('text')">
+        <i class="fa-solid fa-font"></i>
+        <div><h4>Text Field</h4><p>Click on page to add text</p></div>
+      </div>
+      <div class="tool-select-card" id="card-tool-grid" onclick="setAppMode('grid')">
+        <i class="fa-solid fa-table-cells"></i>
+        <div><h4>Digit Grid</h4><p>Draw to create digit boxes</p></div>
+      </div>
+    </div>
+    <div style="margin-top:auto">
+      <button class="tool-select-card" style="width:100%;background:transparent;border-style:dashed" onclick="clearWorkspaceElements()">
+        <i class="fa-solid fa-trash-can" style="color:#ef4444"></i>
+        <div style="text-align:left"><h4 style="color:#ef4444">Clear All</h4></div>
+      </button>
+    </div>
+  </div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+  <div class="workspace-viewport">
+    <div class="pages-wrapper" id="pages-wrapper"></div>
+  </div>
+</div>
 
-        const matrix = document.getElementById('live-interaction-matrix');
-        const canvasContainer = document.getElementById('canvas-surface');
-        const pdfCanvas = document.getElementById('pdf-render-canvas');
-        const marquee = document.getElementById('marquee-detector');
-        const globalToolbar = document.getElementById('global-floating-toolbar');
-        const printCanvas = document.getElementById('print-flatten-canvas');
+<div id="global-floating-toolbar" class="canva-floating-toolbar" style="display:none" onmousedown="event.stopPropagation()">
+  <div class="toolbar-segment font-slider-container">
+    <i class="fa-solid fa-text-height" style="color:#64748b;font-size:12px"></i>
+    <input type="range" min="8" max="72" value="16" id="global-font-slider">
+    <span id="global-font-counter">16px</span>
+  </div>
+  <div class="toolbar-divider"></div>
+  <div class="toolbar-segment">
+    <div class="tool-action-icon" id="toolbar-duplicate" title="Duplicate"><i class="fa-regular fa-copy"></i></div>
+    <div class="tool-action-icon" id="toolbar-lock" title="Lock"><i class="fa-solid fa-lock-open"></i></div>
+    <div class="tool-action-icon" id="toolbar-delete" title="Delete" style="color:#ef4444"><i class="fa-solid fa-trash-can"></i></div>
+  </div>
+</div>
 
-        let appState = {
-            currentMode: 'text',
-            zoomScale: 1.0,
-            selectedElement: null,
-            isDragging: false,
-            isResizing: false,
-            isMarqueeSelecting: false,
-            dragTarget: null,
-            startX: 0, startY: 0,
-            offsetX: 0, offsetY: 0,
-            isPreview: false
-        };
+<div class="status-sync-hub" id="app-toast">
+  <i class="fa-solid fa-circle-check" style="color:var(--canva-blue)"></i>
+  <span id="toast-txt">Ready</span>
+</div>
 
-        function initBlankSheet() {
-            pdfCanvas.width = 850;
-            pdfCanvas.height = 1100;
-            const ctx = pdfCanvas.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 850, 1100);
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '22px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText('Please Upload Your Form Document Asset (PDF/Image)', 425, 550);
-            
-            canvasContainer.style.width = '850px';
-            canvasContainer.style.height = '1100px';
-        }
-        initBlankSheet();
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        function loadFormAsset(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+const pagesWrapper=document.getElementById('pages-wrapper');
+const globalToolbar=document.getElementById('global-floating-toolbar');
 
-            if (file.type === "application/pdf") {
-                showToast("Rendering Vector Document Layout...");
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const typedarray = new Uint8Array(e.target.result);
-                    pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-                        pdf.getPage(1).then(page => {
-                            const viewportPage = page.getViewport({ scale: 1.5 });
-                            pdfCanvas.height = viewportPage.height;
-                            pdfCanvas.width = viewportPage.width;
-                            
-                            canvasContainer.style.width = viewportPage.width + 'px';
-                            canvasContainer.style.height = viewportPage.height + 'px';
+let S={
+  mode:'text', zoom:1,
+  selEl:null, selMat:null,
+  dragging:false, resizing:false, marquee:false,
+  dragEl:null, dragMat:null,
+  ox:0, oy:0,
+  mx0:0, my0:0
+};
 
-                            const renderContext = {
-                                canvasContext: pdfCanvas.getContext('2d'),
-                                viewport: viewportPage
-                            };
-                            page.render(renderContext).promise.then(() => {
-                                showToast("PDF Form Rendered Successfully!");
-                            });
-                        });
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        pdfCanvas.width = img.width;
-                        pdfCanvas.height = img.height;
-                        canvasContainer.style.width = img.width + 'px';
-                        canvasContainer.style.height = img.height + 'px';
-                        pdfCanvas.getContext('2d').drawImage(img, 0, 0);
-                        showToast("Document asset image loaded successfully!");
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+let pages=[];
 
-        function setAppMode(mode) {
-            if(appState.isPreview) return;
-            appState.currentMode = mode;
-            document.getElementById('card-tool-text').classList.toggle('active', mode === 'text');
-            document.getElementById('card-tool-grid').classList.toggle('active', mode === 'grid');
-            matrix.style.cursor = mode === 'grid' ? 'cell' : 'crosshair';
-        }
+/* ───── PAGE ───── */
+function createPage(w,h){
+  const wrap=document.createElement('div');
+  wrap.className='canvas-container';
+  wrap.style.cssText='width:'+w+'px;height:'+h+'px;';
 
-        function adjustZoom(amount) {
-            appState.zoomScale = Math.max(0.4, Math.min(2.5, appState.zoomScale + amount));
-            canvasContainer.style.transform = `scale(${appState.zoomScale})`;
-            document.getElementById('zoom-value-label').innerText = Math.round(appState.zoomScale * 100) + '%';
-            if(appState.selectedElement) repositionGlobalToolbar(appState.selectedElement);
-        }
+  const cvs=document.createElement('canvas');
+  cvs.className='pdf-render-canvas';
+  cvs.width=w;cvs.height=h;
+  cvs.style.cssText='position:absolute;top:0;left:0;z-index:1;display:block;';
+  wrap.appendChild(cvs);
 
-        function togglePreviewMode() {
-            appState.isPreview = !appState.isPreview;
-            document.body.classList.toggle('preview-active', appState.isPreview);
-            
-            const btnText = document.getElementById('preview-btn-text');
-            const btn = document.getElementById('preview-toggle-trigger');
-            
-            if (appState.isPreview) {
-                deselectAll();
-                // ارسم كل حاجة في كانفاس واحد وعرضه بدل الطبقتين
-                buildPrintCanvas();
-                pdfCanvas.style.display = 'none';
-                matrix.style.display = 'none';
-                printCanvas.style.display = 'block';
-                printCanvas.style.maxWidth = '100%';
-                btnText.innerText = "Editor Mode";
-                btn.style.background = "var(--canva-purple)";
-                showToast("Preview — identical to print output");
-            } else {
-                // رجّع المحرر زي ما كان
-                pdfCanvas.style.display = 'block';
-                matrix.style.display = 'block';
-                printCanvas.style.display = 'none';
-                btnText.innerText = "Preview Mode";
-                btn.style.background = "#2563eb";
-                setAppMode(appState.currentMode);
-                showToast("Editor Dashboard Restored");
-            }
-        }
+  const pCvs=document.createElement('canvas');
+  pCvs.className='print-flatten-canvas';
+  pCvs.style.cssText='position:absolute;top:0;left:0;z-index:0;display:none;';
+  wrap.appendChild(pCvs);
 
-        matrix.addEventListener('mousedown', function(e) {
-            if(appState.isPreview) return;
-            const rect = matrix.getBoundingClientRect();
-            const clientX = (e.clientX - rect.left) / appState.zoomScale;
-            const clientY = (e.clientY - rect.top) / appState.zoomScale;
+  const mat=document.createElement('div');
+  mat.className='interaction-matrix';
+  mat.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;cursor:crosshair;overflow:visible;';
+  wrap.appendChild(mat);
 
-            if (appState.currentMode === 'grid') {
-                appState.isMarqueeSelecting = true;
-                appState.startX = clientX;
-                appState.startY = clientY;
-                marquee.style.left = clientX + 'px';
-                marquee.style.top = clientY + 'px';
-                marquee.style.width = '0px';
-                marquee.style.height = '0px';
-                marquee.style.display = 'block';
-                return;
-            }
+  const marq=document.createElement('div');
+  marq.className='smart-detect-marquee';
+  mat.appendChild(marq);
 
-            if (e.target === matrix) {
-                deselectAll();
-                createNewTextField(clientX, clientY);
-            }
-        });
+  pagesWrapper.appendChild(wrap);
+  bindMatrix(mat,marq);
+  pages.push({wrap,cvs,pCvs,mat,marq});
+  return pages[pages.length-1];
+}
 
-        document.addEventListener('mousemove', function(e) {
-            const rect = matrix.getBoundingClientRect();
-            const clientX = (e.clientX - rect.left) / appState.zoomScale;
-            const clientY = (e.clientY - rect.top) / appState.zoomScale;
+function initBlank(){
+  const p=createPage(850,1100);
+  const ctx=p.cvs.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,850,1100);
+  ctx.fillStyle='#94a3b8';ctx.font='18px Inter';ctx.textAlign='center';
+  ctx.fillText('Upload a PDF or Image to get started',425,550);
+}
+initBlank();
 
-            if (appState.isMarqueeSelecting) {
-                let w = clientX - appState.startX;
-                let h = clientY - appState.startY;
-                marquee.style.width = Math.abs(w) + 'px';
-                marquee.style.height = Math.abs(h) + 'px';
-                marquee.style.left = (w < 0 ? clientX : appState.startX) + 'px';
-                marquee.style.top = (h < 0 ? clientY : appState.startY) + 'px';
-                return;
-            }
+/* ───── LOAD ───── */
+function loadFormAsset(ev){
+  const file=ev.target.files[0];if(!file)return;
+  pagesWrapper.innerHTML='';pages=[];deselectAll();
 
-            if (appState.isDragging && appState.dragTarget) {
-                if (appState.dragTarget.classList.contains('locked')) return;
-                let targetX = clientX - appState.offsetX;
-                let targetY = clientY - appState.offsetY;
-                appState.dragTarget.style.left = targetX + 'px';
-                appState.dragTarget.style.top = targetY + 'px';
-                repositionGlobalToolbar(appState.dragTarget);
-                return;
-            }
-
-            if (appState.isResizing && appState.dragTarget) {
-                let w = clientX - parseFloat(appState.dragTarget.style.left);
-                let h = clientY - parseFloat(appState.dragTarget.style.top);
-                if (w > 40) appState.dragTarget.style.width = w + 'px';
-                if (h > 20) appState.dragTarget.style.height = h + 'px';
-                if (appState.dragTarget.classList.contains('grid-field-type')) {
-                    recalculateGridBoxes(appState.dragTarget);
-                }
-                repositionGlobalToolbar(appState.dragTarget);
-            }
-        });
-
-        document.addEventListener('mouseup', function() {
-            if (appState.isMarqueeSelecting) {
-                appState.isMarqueeSelecting = false;
-                marquee.style.display = 'none';
-                generateSmartGridFromMarquee();
-            }
-            appState.isDragging = false;
-            appState.isResizing = false;
-            appState.dragTarget = null;
-        });
-
-        function createNewTextField(x, y, text = "") {
-            const el = document.createElement('div');
-            el.className = 'canvas-element text-field-type';
-            el.style.left = x + 'px';
-            el.style.top = (y - 15) + 'px';
-            el.style.width = '180px';
-            el.style.height = '38px';
-            el.style.fontSize = '16px'; 
-
-            const txt = document.createElement('textarea');
-            txt.className = 'text-vector-input';
-            txt.value = text;
-            txt.placeholder = "Click to Type...";
-            el.appendChild(txt);
-
-            appendCanvaUIHandles(el);
-            matrix.appendChild(el);
-            attachElementEvents(el, txt);
-            selectElement(el);
-
-            setTimeout(() => txt.focus(), 50);
-        }
-
-        function generateSmartGridFromMarquee() {
-            const w = parseFloat(marquee.style.width);
-            const h = parseFloat(marquee.style.height);
-            const l = parseFloat(marquee.style.left);
-            const t = parseFloat(marquee.style.top);
-
-            if (w < 30 || h < 15) return;
-
-            const el = document.createElement('div');
-            el.className = 'canvas-element grid-field-type';
-            el.style.left = l + 'px';
-            el.style.top = t + 'px';
-            el.style.width = w + 'px';
-            el.style.height = h + 'px';
-            el.style.fontSize = '16px'; 
-
-            let estimatedBoxes = Math.max(2, Math.round(w / 26));
-            el.setAttribute('data-box-count', estimatedBoxes);
-            el.setAttribute('data-raw-value', ""); 
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'grid-cells-wrapper';
-            el.appendChild(wrapper);
-
-            appendCanvaUIHandles(el);
-            matrix.appendChild(el);
-            attachElementEvents(el, null);
-            recalculateGridBoxes(el);
-            selectElement(el);
-            setAppMode('text');
-        }
-
-        function recalculateGridBoxes(el) {
-            const wrapper = el.querySelector('.grid-cells-wrapper');
-            wrapper.innerHTML = '';
-            
-            const totalWidth = parseFloat(el.style.width);
-            const boxCount = parseInt(el.getAttribute('data-box-count'));
-            const valueStr = el.getAttribute('data-raw-value') || '';
-            const customFontSize = el.style.fontSize;
-
-            const gapSize = 1; 
-            const singleBoxWidth = (totalWidth - (gapSize * (boxCount - 1))) / boxCount;
-
-            for (let i = 0; i < boxCount; i++) {
-                const box = document.createElement('div');
-                box.className = 'smart-character-box';
-                box.style.width = singleBoxWidth + 'px';
-                box.style.fontSize = customFontSize; 
-                box.innerText = valueStr[i] || '';
-                wrapper.appendChild(box);
-            }
-        }
-
-        function appendCanvaUIHandles(el) {
-            const rh = document.createElement('div');
-            rh.className = 'resize-handle rh-se';
-            el.appendChild(rh);
-
-            rh.addEventListener('mousedown', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                if(appState.isPreview) return;
-                appState.isResizing = true;
-                appState.dragTarget = el;
-                selectElement(el);
+  if(file.type==='application/pdf'){
+    showToast('Loading PDF...');
+    const r=new FileReader();
+    r.onload=e=>{
+      pdfjsLib.getDocument(new Uint8Array(e.target.result)).promise.then(pdf=>{
+        const go=n=>{
+          pdf.getPage(n).then(pg=>{
+            const vp=pg.getViewport({scale:1.5});
+            const p=createPage(vp.width,vp.height);
+            p.cvs.width=vp.width;p.cvs.height=vp.height;
+            p.wrap.style.width=vp.width+'px';p.wrap.style.height=vp.height+'px';
+            pg.render({canvasContext:p.cvs.getContext('2d'),viewport:vp}).promise.then(()=>{
+              if(n<pdf.numPages)go(n+1);
+              else showToast('All '+pdf.numPages+' pages loaded!');
             });
-        }
+          });
+        };go(1);
+      });
+    };r.readAsArrayBuffer(file);
+  } else {
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const p=createPage(img.width,img.height);
+        p.cvs.width=img.width;p.cvs.height=img.height;
+        p.cvs.getContext('2d').drawImage(img,0,0);
+        showToast('Image loaded!');
+      };
+      img.src=e.target.result;
+    };r.readAsDataURL(file);
+  }
+}
 
-        function attachElementEvents(el, textarea) {
-            el.addEventListener('mousedown', function(e) {
-                if(appState.isPreview) return;
-                if (e.target.classList.contains('resize-handle')) return;
-                
-                e.stopPropagation();
-                selectElement(el);
-                
-                appState.isDragging = true;
-                appState.dragTarget = el;
+/* ───── MATRIX EVENTS ───── */
+function bindMatrix(mat,marq){
+  mat.addEventListener('mousedown',e=>{
+    // only blank matrix click (not on a child element)
+    if(e.target!==mat){return;}
+    S.selMat=mat;
 
-                const rect = matrix.getBoundingClientRect();
-                const clientX = (e.clientX - rect.left) / appState.zoomScale;
-                const clientY = (e.clientY - rect.top) / appState.zoomScale;
+    const {cx,cy}=matCoords(e,mat);
 
-                appState.offsetX = clientX - parseFloat(el.style.left);
-                appState.offsetY = clientY - parseFloat(el.style.top);
-            });
+    if(S.mode==='grid'){
+      S.marquee=true;S.mx0=cx;S.my0=cy;
+      marq.style.cssText='position:absolute;border:2px dashed #00c4cc;background:rgba(0,196,204,.12);pointer-events:none;z-index:1000;display:block;left:'+cx+'px;top:'+cy+'px;width:0;height:0;';
+      return;
+    }
+    deselectAll();
+    makeTextField(cx,cy,mat,'');
+  });
 
-            el.addEventListener('dblclick', function(e) {
-                e.stopPropagation();
-                if (el.classList.contains('locked') || appState.isPreview) return;
-                
-                if (textarea) {
-                    textarea.focus();
-                } else if (el.classList.contains('grid-field-type')) {
-                    let currentVal = el.getAttribute('data-raw-value');
-                    let newVal = prompt("Enter exact sequence digits:", currentVal);
-                    if (newVal !== null) {
-                        el.setAttribute('data-raw-value', newVal);
-                        if(newVal.length > 0) el.setAttribute('data-box-count', newVal.length);
-                        recalculateGridBoxes(el);
-                    }
-                }
-            });
-        }
+  mat.addEventListener('mousemove',e=>{
+    if(!S.marquee||S.selMat!==mat)return;
+    const {cx,cy}=matCoords(e,mat);
+    const w=cx-S.mx0,h=cy-S.my0;
+    marq.style.width=Math.abs(w)+'px';marq.style.height=Math.abs(h)+'px';
+    marq.style.left=(w<0?cx:S.mx0)+'px';marq.style.top=(h<0?cy:S.my0)+'px';
+  });
 
-        function selectElement(el) {
-            if (appState.isPreview) return;
-            if (appState.selectedElement) {
-                appState.selectedElement.classList.remove('is-selected');
-            }
-            appState.selectedElement = el;
-            el.classList.add('is-selected');
-            
-            setupGlobalToolbarValues(el);
-            repositionGlobalToolbar(el);
-        }
+  mat.addEventListener('mouseup',e=>{
+    if(S.marquee&&S.selMat===mat){
+      S.marquee=false;marq.style.display='none';
+      makeGrid(marq,mat);
+    }
+  });
+}
 
-        function deselectAll() {
-            globalToolbar.style.display = 'none';
-            document.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('is-selected'));
-            appState.selectedElement = null;
-        }
+function matCoords(e,mat){
+  const r=mat.getBoundingClientRect();
+  return{cx:(e.clientX-r.left)/S.zoom,cy:(e.clientY-r.top)/S.zoom};
+}
 
-        function repositionGlobalToolbar(el) {
-            const elRect = el.getBoundingClientRect();
-            const matrixRect = matrix.getBoundingClientRect();
-            
-            const relativeLeft = elRect.left - matrixRect.left + (elRect.width / 2);
-            const relativeTop = elRect.top - matrixRect.top;
+/* global move / up */
+document.addEventListener('mousemove',e=>{
+  if(S.dragging&&S.dragEl&&S.dragMat){
+    if(S.dragEl.classList.contains('locked'))return;
+    const {cx,cy}=matCoords(e,S.dragMat);
+    S.dragEl.style.left=(cx-S.ox)+'px';
+    S.dragEl.style.top=(cy-S.oy)+'px';
+    placeToolbar(S.dragEl);
+  }
+  if(S.resizing&&S.dragEl&&S.dragMat){
+    const {cx,cy}=matCoords(e,S.dragMat);
+    const w=cx-parseFloat(S.dragEl.style.left);
+    const h=cy-parseFloat(S.dragEl.style.top);
+    if(w>40)S.dragEl.style.width=w+'px';
+    if(h>14)S.dragEl.style.height=h+'px';
+    if(S.dragEl.classList.contains('grid-type'))redrawGrid(S.dragEl);
+    placeToolbar(S.dragEl);
+  }
+});
+document.addEventListener('mouseup',()=>{S.dragging=false;S.resizing=false;});
 
-            globalToolbar.style.display = 'flex';
-            globalToolbar.style.left = relativeLeft + 'px';
-            globalToolbar.style.top = relativeTop + 'px';
-        }
+/* ───── TEXT FIELD ───── */
+function makeTextField(x,y,mat,val){
+  const el=mkEl(x,y,180,32,'text-type');
+  el.style.fontSize='16px';
 
-        function setupGlobalToolbarValues(el) {
-            const sizeInput = document.getElementById('global-font-slider');
-            const sizeCounter = document.getElementById('global-font-counter');
-            const currentSize = parseInt(el.style.fontSize) || 16;
-            
-            sizeInput.value = currentSize;
-            sizeCounter.innerText = currentSize + 'px';
-            
-            sizeInput.oninput = function() {
-                sizeCounter.innerText = this.value + 'px';
-                el.style.fontSize = this.value + 'px';
-                
-                const textarea = el.querySelector('textarea');
-                if(textarea) {
-                    textarea.style.fontSize = this.value + 'px';
-                }
-                if(el.classList.contains('grid-field-type')) {
-                    recalculateGridBoxes(el);
-                }
-            };
+  // drag handle — شريط شفاف على يمين العنصر للـ drag
+  const dh=document.createElement('div');
+  dh.className='drag-handle';
+  dh.title='Drag to move';
+  dh.style.cssText='position:absolute;top:0;left:0;width:100%;height:8px;cursor:move;z-index:15;background:transparent;';
+  el.appendChild(dh);
 
-            document.getElementById('toolbar-delete').onclick = function(e) {
-                e.stopPropagation();
-                el.remove();
-                deselectAll();
-                showToast("Element removed.");
-            };
+  const ta=document.createElement('textarea');
+  ta.className='text-vector-input';
+  ta.value=val;ta.placeholder='Type here...';
+  ta.style.fontSize='16px';
+  // منع الـ drag لما يكون cursor داخل الـ textarea
+  ta.addEventListener('mousedown',e=>e.stopPropagation());
+  el.appendChild(ta);
 
-            document.getElementById('toolbar-lock').onclick = function(e) {
-                e.stopPropagation();
-                const isLocked = el.classList.toggle('locked');
-                this.innerHTML = isLocked ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-lock-open"></i>';
-                showToast(isLocked ? "Element position locked." : "Element unlocked.");
-            };
+  el.appendChild(makeFontBtns(el));
+  addResizeHandle(el);
+  mat.appendChild(el);
+  bindEl(el,mat,dh);
+  pickEl(el,mat);
+  setTimeout(()=>ta.focus(),30);
+}
 
-            document.getElementById('toolbar-duplicate').onclick = function(e) {
-                e.stopPropagation();
-                const currentLeft = parseFloat(el.style.left);
-                const currentTop = parseFloat(el.style.top);
-                
-                if (el.classList.contains('text-field-type')) {
-                    const txtVal = el.querySelector('textarea').value;
-                    createNewTextField(currentLeft + 20, currentTop + 35, txtVal);
-                } else if (el.classList.contains('grid-field-type')) {
-                    showToast("Duplicate feature coming soon for advanced grids!");
-                }
-            };
-        }
+/* ───── GRID ───── */
+function makeGrid(marq,mat){
+  const w=parseFloat(marq.style.width)||0,h=parseFloat(marq.style.height)||0;
+  const l=parseFloat(marq.style.left)||0,t=parseFloat(marq.style.top)||0;
+  if(w<20||h<10)return;
 
-        function clearWorkspaceElements() {
-            if(confirm("Are you sure you want to delete all current design elements?")) {
-                matrix.innerHTML = '';
-                deselectAll();
-                showToast("Workspace Cleared Successfully.");
-            }
-        }
+  const el=mkEl(l,t,w,h,'grid-type');
+  el.style.fontSize='16px';
+  el.dataset.count=Math.max(1,Math.round(w/28));
+  el.dataset.val='';
 
-        function showToast(msg) {
-            const toast = document.getElementById('app-toast');
-            document.getElementById('toast-txt').innerText = msg;
-            toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 3000);
-        }
+  el.appendChild(makeFontBtns(el));
+  const wrap=document.createElement('div');
+  wrap.className='grid-cells-wrapper';
+  el.appendChild(wrap);
 
-        // ============ تحريك دقيق بالـ Arrow Keys (Pixel-Perfect Nudge) ============
-        // حدد العنصر بالماوس الأول، وبعدين استخدم الأسهم لتحريكه 1px (أو 10px مع Shift)
-        document.addEventListener('keydown', function(e) {
-            if (appState.isPreview) return;
-            if (!appState.selectedElement) return;
-            if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
-            if (appState.selectedElement.classList.contains('locked')) return;
+  addResizeHandle(el);
+  mat.appendChild(el);
+  redrawGrid(el);
 
-            const step = e.shiftKey ? 10 : 1;
-            let left = parseFloat(appState.selectedElement.style.left) || 0;
-            let top = parseFloat(appState.selectedElement.style.top) || 0;
-            let moved = false;
+  // whole element is draggable for grid (no textarea inside)
+  bindEl(el,mat,el);
+  pickEl(el,mat);
+  setAppMode('text');
+}
 
-            if (e.key === 'ArrowUp') { top -= step; moved = true; }
-            else if (e.key === 'ArrowDown') { top += step; moved = true; }
-            else if (e.key === 'ArrowLeft') { left -= step; moved = true; }
-            else if (e.key === 'ArrowRight') { left += step; moved = true; }
+function redrawGrid(el){
+  const wrap=el.querySelector('.grid-cells-wrapper');if(!wrap)return;
+  wrap.innerHTML='';
+  const tw=parseFloat(el.style.width)||100;
+  const n=parseInt(el.dataset.count)||1;
+  const v=el.dataset.val||'';
+  const fs=el.style.fontSize||'16px';
+  const bw=tw/n;
+  for(let i=0;i<n;i++){
+    const b=document.createElement('div');
+    b.className='smart-character-box';
+    b.style.cssText='width:'+bw+'px;font-size:'+fs+';';
+    b.innerText=v[i]||'';
+    wrap.appendChild(b);
+  }
+}
 
-            if (moved) {
-                e.preventDefault();
-                appState.selectedElement.style.left = left + 'px';
-                appState.selectedElement.style.top = top + 'px';
-                repositionGlobalToolbar(appState.selectedElement);
-            }
-        });
+/* ───── HELPERS ───── */
+function mkEl(x,y,w,h,cls){
+  const el=document.createElement('div');
+  el.className='canvas-element '+cls;
+  el.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;';
+  return el;
+}
 
-        // ============ نظام تسطيح الطباعة — html2canvas (screenshot حرفي) ============
-        // بياخد صورة حرفية لكل حاجة على الشاشة، مفيش أي حسابات يدوية ممكن تغلط
-        function triggerPrint() {
-            showToast("جاري تجهيز الطباعة...");
+function makeFontBtns(el){
+  const div=document.createElement('div');
+  div.className='font-quick-btns';
+  const lbl=document.createElement('span');
+  lbl.className='fqb-label';lbl.innerText='16px';
+  const bm=btn('−',()=>chFont(el,-2,lbl));
+  const bp=btn('+',()=>chFont(el,2,lbl));
+  div.appendChild(bm);div.appendChild(lbl);div.appendChild(bp);
+  return div;
+}
+function btn(txt,fn){
+  const b=document.createElement('button');
+  b.className='fqb';b.textContent=txt;
+  b.addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();fn();});
+  return b;
+}
+function chFont(el,d,lbl){
+  const n=Math.max(8,Math.min(80,(parseInt(el.style.fontSize)||16)+d));
+  el.style.fontSize=n+'px';
+  const ta=el.querySelector('textarea');if(ta)ta.style.fontSize=n+'px';
+  if(el.classList.contains('grid-type'))redrawGrid(el);
+  if(lbl)lbl.innerText=n+'px';
+  document.getElementById('global-font-slider').value=n;
+  document.getElementById('global-font-counter').innerText=n+'px';
+}
 
-            // لو في preview mode، ارجع للمحرر مؤقتاً عشان نشوف العناصر
-            const wasPreview = appState.isPreview;
-            if (wasPreview) {
-                pdfCanvas.style.display   = 'block';
-                matrix.style.display      = 'block';
-                printCanvas.style.display = 'none';
-            }
+function addResizeHandle(el){
+  const rh=document.createElement('div');
+  rh.className='resize-handle';
+  rh.addEventListener('mousedown',e=>{
+    e.stopPropagation();e.preventDefault();
+    S.resizing=true;S.dragEl=el;S.dragMat=S.selMat;
+  });
+  el.appendChild(rh);
+}
 
-            // شيل الـ zoom transform مؤقتاً عشان الـ screenshot يطلع بالحجم الطبيعي
-            const prevTransform = canvasContainer.style.transform;
-            canvasContainer.style.transform = 'scale(1)';
+/* bindEl — dragTarget هو الـ element اللي بيتعمل drag منه (drag handle أو نفس الـ el للـ grid) */
+function bindEl(el,mat,dragTrigger){
+  dragTrigger.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('resize-handle'))return;
+    e.stopPropagation();
+    S.selMat=mat;
+    pickEl(el,mat);
+    if(el.classList.contains('locked'))return;
+    S.dragging=true;S.dragEl=el;S.dragMat=mat;
+    const {cx,cy}=matCoords(e,mat);
+    S.ox=cx-parseFloat(el.style.left);
+    S.oy=cy-parseFloat(el.style.top);
+  });
 
-            // شيل الـ selection borders مؤقتاً
-            deselectAll();
+  el.addEventListener('mousedown',e=>{
+    // select on click anywhere on element
+    S.selMat=mat;
+    pickEl(el,mat);
+  });
 
-            html2canvas(canvasContainer, {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false
-            }).then(function(capturedCanvas) {
-                // رجّع الـ transform
-                canvasContainer.style.transform = prevTransform;
+  el.addEventListener('dblclick',e=>{
+    e.stopPropagation();
+    if(el.classList.contains('locked'))return;
+    const ta=el.querySelector('textarea');
+    if(ta){ta.focus();return;}
+    if(el.classList.contains('grid-type')){
+      const nv=prompt('Enter digits:',el.dataset.val||'');
+      if(nv!==null){
+        el.dataset.val=nv;
+        if(nv.length>0)el.dataset.count=nv.length;
+        redrawGrid(el);
+      }
+    }
+  });
+}
 
-                // حط الـ screenshot في printCanvas
-                printCanvas.width  = capturedCanvas.width;
-                printCanvas.height = capturedCanvas.height;
-                printCanvas.getContext('2d').drawImage(capturedCanvas, 0, 0);
+/* ───── SELECT / DESELECT ───── */
+function pickEl(el,mat){
+  if(S.selEl&&S.selEl!==el)S.selEl.classList.remove('is-selected');
+  S.selEl=el;S.selMat=mat||S.selMat;
+  el.classList.add('is-selected');
+  setupToolbar(el);
+  placeToolbar(el);
+  const lbl=el.querySelector('.fqb-label');
+  if(lbl)lbl.innerText=(parseInt(el.style.fontSize)||16)+'px';
+}
 
-                // لو كنا في preview، ارجع ليه
-                if (wasPreview) {
-                    pdfCanvas.style.display   = 'none';
-                    matrix.style.display      = 'none';
-                    printCanvas.style.display = 'block';
-                }
+function deselectAll(){
+  if(S.selEl)S.selEl.classList.remove('is-selected');
+  S.selEl=null;
+  globalToolbar.style.display='none';
+}
 
-                window.print();
-                showToast("تم!");
-            }).catch(function(err) {
-                // fallback لو html2canvas اتعطل
-                canvasContainer.style.transform = prevTransform;
-                if (wasPreview) {
-                    pdfCanvas.style.display   = 'none';
-                    matrix.style.display      = 'none';
-                    printCanvas.style.display = 'block';
-                }
-                console.error('html2canvas error:', err);
-                window.print();
-            });
-        }
+function placeToolbar(el){
+  if(!el||!S.selMat)return;
+  const er=el.getBoundingClientRect();
+  const mr=S.selMat.getBoundingClientRect();
+  globalToolbar.style.display='flex';
+  globalToolbar.style.position='absolute';
+  globalToolbar.style.left=(er.left-mr.left+er.width/2)+'px';
+  globalToolbar.style.top=(er.top-mr.top+er.height+8)+'px';
+  globalToolbar.style.transform='translateX(-50%)';
+  if(globalToolbar.parentElement!==S.selMat)S.selMat.appendChild(globalToolbar);
+}
 
-        // beforeprint fallback لـ Ctrl+P — بيستخدم html2canvas كمان
-        window.addEventListener('beforeprint', function() {
-            // لو printCanvas مش فيه حاجة (أول طباعة بـ Ctrl+P)، ارسم عليه
-            if (printCanvas.width === 0) {
-                const ctx = printCanvas.getContext('2d');
-                printCanvas.width  = pdfCanvas.width;
-                printCanvas.height = pdfCanvas.height;
-                ctx.drawImage(pdfCanvas, 0, 0);
-            }
-        });
-    </script>
+function setupToolbar(el){
+  const sl=document.getElementById('global-font-slider');
+  const ct=document.getElementById('global-font-counter');
+  const fs=parseInt(el.style.fontSize)||16;
+  sl.value=fs;ct.innerText=fs+'px';
+
+  sl.oninput=function(){
+    const v=parseInt(this.value);
+    ct.innerText=v+'px';el.style.fontSize=v+'px';
+    const ta=el.querySelector('textarea');if(ta)ta.style.fontSize=v+'px';
+    if(el.classList.contains('grid-type'))redrawGrid(el);
+    const lbl=el.querySelector('.fqb-label');if(lbl)lbl.innerText=v+'px';
+  };
+
+  document.getElementById('toolbar-delete').onclick=e=>{
+    e.stopPropagation();el.remove();deselectAll();showToast('Deleted.');
+  };
+  document.getElementById('toolbar-lock').onclick=e=>{
+    e.stopPropagation();
+    const lk=el.classList.toggle('locked');
+    e.currentTarget.innerHTML=lk?'<i class="fa-solid fa-lock"></i>':'<i class="fa-solid fa-lock-open"></i>';
+    showToast(lk?'Locked.':'Unlocked.');
+  };
+  document.getElementById('toolbar-duplicate').onclick=e=>{
+    e.stopPropagation();
+    if(el.classList.contains('text-type')){
+      const v=el.querySelector('textarea').value;
+      makeTextField(parseFloat(el.style.left)+20,parseFloat(el.style.top)+36,S.selMat,v);
+    }
+  };
+}
+
+/* ───── MODE / ZOOM / CLEAR ───── */
+function setAppMode(m){
+  S.mode=m;
+  document.getElementById('card-tool-text').classList.toggle('active',m==='text');
+  document.getElementById('card-tool-grid').classList.toggle('active',m==='grid');
+}
+
+function adjustZoom(d){
+  S.zoom=Math.max(0.3,Math.min(3,S.zoom+d));
+  document.querySelectorAll('.canvas-container').forEach(c=>{
+    c.style.transform='scale('+S.zoom+')';
+    c.style.marginBottom=(parseFloat(c.style.height)*(S.zoom-1)+40)+'px';
+  });
+  document.getElementById('zoom-value-label').innerText=Math.round(S.zoom*100)+'%';
+  if(S.selEl)placeToolbar(S.selEl);
+}
+
+function clearWorkspaceElements(){
+  if(confirm('Delete all elements?')){
+    document.querySelectorAll('.canvas-element').forEach(e=>e.remove());
+    deselectAll();showToast('Cleared.');
+  }
+}
+
+/* ───── KEYBOARD ───── */
+document.addEventListener('keydown',e=>{
+  if(!S.selEl)return;
+  if(document.activeElement?.tagName==='TEXTAREA')return;
+  if(S.selEl.classList.contains('locked'))return;
+  const step=e.shiftKey?10:1;
+  let l=parseFloat(S.selEl.style.left)||0,t=parseFloat(S.selEl.style.top)||0,mv=false;
+  if(e.key==='ArrowUp'){t-=step;mv=true;}
+  else if(e.key==='ArrowDown'){t+=step;mv=true;}
+  else if(e.key==='ArrowLeft'){l-=step;mv=true;}
+  else if(e.key==='ArrowRight'){l+=step;mv=true;}
+  if(mv){e.preventDefault();S.selEl.style.left=l+'px';S.selEl.style.top=t+'px';placeToolbar(S.selEl);}
+});
+
+/* click outside */
+document.addEventListener('mousedown',e=>{
+  if(!S.selEl)return;
+  if(e.target.closest('.canvas-element')||e.target.closest('#global-floating-toolbar'))return;
+  deselectAll();
+});
+
+/* ───── PRINT ───── */
+function triggerPrint(){
+  showToast('Preparing...');deselectAll();
+  const cs=[...document.querySelectorAll('.canvas-container')];
+  let done=0;
+  cs.forEach(c=>{
+    const pc=c.querySelector('.print-flatten-canvas');
+    const pt=c.style.transform,pm=c.style.marginBottom;
+    c.style.transform='scale(1)';c.style.marginBottom='0';
+    html2canvas(c,{
+      scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,
+      ignoreElements:el=>el.classList.contains('font-quick-btns')||el.id==='global-floating-toolbar'||el.classList.contains('drag-handle')
+    }).then(cap=>{
+      c.style.transform=pt;c.style.marginBottom=pm;
+      pc.width=cap.width;pc.height=cap.height;
+      pc.style.cssText='display:block;position:static;width:'+c.style.width+';height:'+c.style.height+';';
+      pc.getContext('2d').drawImage(cap,0,0);
+      if(++done===cs.length){window.print();showToast('Done!');}
+    }).catch(()=>{c.style.transform=pt;c.style.marginBottom=pm;if(++done===cs.length)window.print();});
+  });
+}
+
+/* ───── TOAST ───── */
+function showToast(msg){
+  const t=document.getElementById('app-toast');
+  document.getElementById('toast-txt').innerText=msg;
+  t.classList.add('active');
+  setTimeout(()=>t.classList.remove('active'),3000);
+}
+</script>
 </body>
 </html>
