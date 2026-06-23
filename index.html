@@ -7,7 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--canvas-bg:#141517;--workspace-bg:#0f1011;--canva-purple:#8b3dff;--canva-blue:#00c4cc;--sidebar-bg:#1a1b1e;--border-color:#2d2e33}
 *{box-sizing:border-box;font-family:'Inter',sans-serif;margin:0;padding:0}
@@ -150,6 +153,25 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
   .pdf-render-canvas{display:none!important}
   .print-flatten-canvas{display:block!important;position:static!important;width:100%!important;height:auto!important}
 }
+/* الـ PDF كخلفية */
+.pdf-render-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* الـ PDF دايماً تحت */
+    pointer-events: none; /* عشان الماوس ميمسكش الـ PDF ويحركه */
+}
+
+/* الطبقة اللي فيها النصوص (Matrix) */
+.interaction-matrix {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; /* النصوص دايماً فوق */
+    pointer-events: auto; /* الماوس يقدر يمسك النصوص */
+}
 </style>
 </head>
 <body>
@@ -169,7 +191,10 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
     </div>
   </div>
   <div class="nav-actions-group">
-    <button class="action-accent-btn" onclick="triggerPrint()"><i class="fa-solid fa-print"></i> Print</button>
+   <button class="action-accent-btn" onclick="downloadAsPDF()">
+    <i class="fa-solid fa-file-pdf"></i> Download PDF
+</button>
+
   </div>
 </nav>
 
@@ -177,10 +202,10 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
   <div class="left-sidebar-panel">
     <div>
       <div class="sidebar-section-title">Upload Document</div>
-      <button class="action-accent-btn upload-btn" style="width:100%;justify-content:center" onclick="document.getElementById('hidden-pdf-uploader').click()">
-        <i class="fa-solid fa-cloud-arrow-up"></i> Choose File / PDF
-      </button>
-      <input type="file" id="hidden-pdf-uploader" accept="application/pdf,image/*" onchange="loadFormAsset(event)">
+     <button class="action-accent-btn upload-btn" style="width:100%;justify-content:center" onclick="document.getElementById('hidden-pdf-uploader').click()">
+    <i class="fa-solid fa-cloud-arrow-up"></i> Choose File / PDF
+</button>
+<input type="file" id="hidden-pdf-uploader" accept="application/pdf,image/*" style="display:none;">
     </div>
     <div>
       <div class="sidebar-section-title">Tool</div>
@@ -202,8 +227,8 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
   </div>
 
   <div class="workspace-viewport">
-    <div class="pages-wrapper" id="pages-wrapper"></div>
-  </div>
+  <div class="pages-wrapper" id="pages-wrapper"></div>
+</div>
 </div>
 
 <div id="global-floating-toolbar" class="canva-floating-toolbar" style="display:none" onmousedown="event.stopPropagation()">
@@ -228,9 +253,10 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-const pagesWrapper=document.getElementById('pages-wrapper');
-const globalToolbar=document.getElementById('global-floating-toolbar');
 
+
+const pagesWrapper = document.getElementById('pages-wrapper'); // ده لازم يطابق الـ ID في الـ HTML
+const globalToolbar = document.getElementById('global-floating-toolbar');
 let S={
   mode:'text', zoom:1,
   selEl:null, selMat:null,
@@ -668,6 +694,46 @@ function showToast(msg){
   t.classList.add('active');
   setTimeout(()=>t.classList.remove('active'),3000);
 }
+document.getElementById('hidden-pdf-uploader').addEventListener('change', function(event) {
+    if (event.target.files.length > 0) {
+        loadFormAsset(event);
+    }
+});
+async function downloadAsPDF() {
+    const { jsPDF } = window.jspdf;
+    // هنجيب كل الصفحات الموجودة في الـ pages-wrapper
+    const containers = document.querySelectorAll('.canvas-container'); 
+
+    if (containers.length === 0) {
+        showToast("لا يوجد مستند للتحميل!");
+        return;
+    }
+
+    showToast("جاري تجهيز ملف PDF متعدد الصفحات...");
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    for (let i = 0; i < containers.length; i++) {
+        // بنحول كل صفحة لـ Canvas
+        const canvas = await html2canvas(containers[i], { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        // لو دي مش الصفحة الأولى، بنضيف صفحة جديدة للـ PDF
+        if (i > 0) {
+            pdf.addPage();
+        }
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    }
+
+    pdf.save("Form_Full_Document.pdf");
+    showToast("تم تحميل الملف بالكامل!");
+}
+    
 </script>
 </body>
 </html>
