@@ -172,6 +172,18 @@ body{background:var(--workspace-bg);color:#fff;overflow:hidden;height:100vh}
     z-index: 10; /* النصوص دايماً فوق */
     pointer-events: auto; /* الماوس يقدر يمسك النصوص */
 }
+@media print {
+    /* بنخفي كل الحاجات اللي مش عايزينها في الـ PDF */
+    .top-nav, .left-sidebar-panel, .canva-floating-toolbar { display: none !important; }
+    
+    /* بنخلي الـ Container ياخد حجم الورقة بالظبط */
+    .canvas-container { 
+        box-shadow: none !important; 
+        page-break-after: always; /* دي بتضمن إن كل صفحة تنزل في ورقة لوحدها */
+        margin: 0 !important;
+        width: 100% !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -349,14 +361,14 @@ function loadFormAsset(ev){
 }
 
 /* ───── MATRIX EVENTS ───── */
-function bindMatrix(mat,marq){
-  mat.addEventListener('mousedown',e=>{
-    // only blank matrix click (not on a child element)
-    if(e.target!==mat){return;}
-    S.selMat=mat;
-
-    const {cx,cy}=matCoords(e,mat);
-
+function bindMatrix(mat, marq) {
+    // هنغير الـ mousedown لـ dblclick
+    mat.addEventListener('dblclick', e => { 
+        // نتأكد إن الضغطة تمت على الـ matrix نفسها مش عنصر جواها
+        if (e.target !== mat) { return; }
+        
+        S.selMat = mat;
+        const { cx, cy } = matCoords(e, mat);
     if(S.mode==='grid'){
       S.marquee=true;S.mx0=cx;S.my0=cy;
       marq.style.cssText='position:absolute;border:2px dashed #00c4cc;background:rgba(0,196,204,.12);pointer-events:none;z-index:1000;display:block;left:'+cx+'px;top:'+cy+'px;width:0;height:0;';
@@ -701,39 +713,42 @@ document.getElementById('hidden-pdf-uploader').addEventListener('change', functi
 });
 async function downloadAsPDF() {
     const { jsPDF } = window.jspdf;
-    // هنجيب كل الصفحات الموجودة في الـ pages-wrapper
-    const containers = document.querySelectorAll('.canvas-container'); 
+    const containers = document.querySelectorAll('.canvas-container');
 
     if (containers.length === 0) {
         showToast("لا يوجد مستند للتحميل!");
         return;
     }
 
-    showToast("جاري تجهيز ملف PDF متعدد الصفحات...");
+    showToast("جاري تجهيز الملف بالكامل...");
 
     const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
     for (let i = 0; i < containers.length; i++) {
-        // بنحول كل صفحة لـ Canvas
-        const canvas = await html2canvas(containers[i], { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        // 1. هنا التأخير عشان نضمن رندرة النصوص
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-        // لو دي مش الصفحة الأولى، بنضيف صفحة جديدة للـ PDF
-        if (i > 0) {
-            pdf.addPage();
-        }
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // 2. بنصور الـ container بالكامل (الصورة + النصوص اللي فوقها)
+        const canvas = await html2canvas(containers[i], { 
+            scale: 2, 
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+        if (i > 0) pdf.addPage();
+
+        // 3. هنا بنحط الصورة الناتجة اللي فيها كل حاجة (الخلفية + النصوص)
+        // وبنفس أبعاد الورقة عشان مفيش حاجة تتقص
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
     }
 
-    pdf.save("Form_Full_Document.pdf");
-    showToast("تم تحميل الملف بالكامل!");
+    pdf.save("Final_Form.pdf");
+    showToast("تم التحميل بنجاح!");
 }
-    
 </script>
 </body>
 </html>
